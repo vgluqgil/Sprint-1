@@ -1,0 +1,118 @@
+#define power_pin 5
+#include <Adafruit_ADS1X15.h>
+
+Adafruit_ADS1115 ads;
+
+const int channelValueH = 0;
+const int channelValueT = 1;
+
+int getHumidity() {  //chequear calibracion
+  int sensorValueH = ads.readADC_SingleEnded(channelValueH);
+  int humidityValue = map(sensorValueH, 30900, 17000, 0, 100);
+  return humidityValue;
+}
+
+int getTemperature() { // chequear calibracion 
+  int sensorValueT = ads.readADC_SingleEnded(channelValueT);
+  //int temperatureValue = map(sensorValueT, 1, 1, 1, 1); // arreglar mapeo
+  //map(sensorValueT, 9199, 18292, 6, 46);//error
+  //leer valor, pasar a voltios, de voltios pasar a temperatura
+  //return TemperatureValue;
+  return sensorValueT;
+}
+
+int getTemperatureFahrenheit(){
+  int celsius = getTemperature();
+  int fahrenheit = ((celsius*9/5)+32);
+  return fahrenheit;
+}
+
+int getSalinity() {  //chequear calibracion
+  int16_t adc0;
+  digitalWrite(power_pin, HIGH);
+  adc0 = analogRead(A0);
+  //int salinityValue = (adc0 - 793.48) / (6.1486);  //********************
+  //return salinityValue;
+  return adc0;
+}
+
+void showHumidity() {
+  int humidity = getHumidity();
+  Serial.println();
+  Serial.println("Humidity: ");
+  Serial.println(humidity);
+  Serial.println("%");
+  /*if (humidity <= 10) {
+    Serial.println("RISK!!! LOW LEVEL OF HUMIDITY!!!");
+  }*/
+}
+
+void showSalinity() {
+  int salinity = getSalinity();
+  Serial.println();
+  Serial.println("Salinity: ");
+  Serial.println(salinity);
+  Serial.println("gr/l");
+}
+
+void showTemperature() {
+  int temperatureC = getTemperature();
+    /*Serial.println("Please enter 'F' for Fahrenheit or 'C' for Celsius.");
+    delay(6000);
+    if (Serial.available() > 0) {
+    char userAnswer = Serial.read();*/
+    Serial.println();
+    Serial.println("Temperature:");
+    /*if (userAnswer == 'F' || userAnswer == 'f') {
+      int temperatureF = getTemperatureFahrenheit();
+      Serial.println(temperatureF);
+      Serial.println("ºF");
+    }*/
+    /*else if (userAnswer == 'C' || userAnswer == 'c') {*/
+      Serial.println(temperatureC);
+      Serial.println("ºC");
+    //}
+  //}
+  /*if (temperatureC>=35){
+    Serial.println("RISK!!! HIGH TEMPERATURE!!!");
+  }*/
+}
+
+void initializeSparkfun() {
+  pinMode(power_pin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void initializeADS() {
+  ads.begin();
+  ads.setGain(GAIN_ONE);
+}
+
+void menuValuesSprintOne() {
+  Serial.println("Welcome!!");
+  Serial.println("Enter: ");
+  Serial.println("'H' ------ To check humidity.");
+  Serial.println("'T' ------ To check temperature.");
+  Serial.println("'S' ------ To check water salinity.");
+  delay(35000);
+}
+
+void setup() {
+  initializeSparkfun();
+  initializeADS();
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    char userAnswer = Serial.read();
+    if (userAnswer == 'H' || userAnswer == 'h') {
+      showHumidity();
+    }
+    if (userAnswer == 'T' || userAnswer == 't') {
+      showTemperature();
+    }
+    if (userAnswer == 'S' || userAnswer == 's') {
+      showSalinity();
+    }
+  }
+}
