@@ -1,0 +1,34 @@
+`//BRIGHTNESS
+
+#define power_pin 5
+#include <Adafruit_ADS1X15.h>
+
+Adafruit_ADS1115 ads;
+
+const int channelValueB = 0;
+
+int getBrightness() {
+  int sensorValueB = ads.readADC_SingleEnded(channelValueB);
+  return sensorValueB;
+}
+
+void showBrightness() {
+  int brightness = getBrightness();
+  Serial.println();
+  Serial.println(brightness);
+}
+
+void initializeADS() {
+  ads.begin();
+  ads.setGain(GAIN_ONE);
+}
+
+void setup() {
+  Serial.begin(9600);
+  initializeADS();
+}
+
+void loop() {
+  showBrightness();
+  delay(1000);
+}`
