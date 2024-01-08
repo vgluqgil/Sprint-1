@@ -1,0 +1,128 @@
+#include <ESP8266HTTPClient.h>
+
+#define power_pin 5
+
+#include <Adafruit_ADS1X15.h>
+
+Adafruit_ADS1115 ads;
+
+const int CHANNEL_H = 0;
+const int CHANNEL_T = 1;
+const int CHANNEL_P = 2;
+const int CHANNEL_B = 3;
+
+
+/--------------------HUMIDITY--------------------/
+void getHumidity() {
+  const int WET_VALUE = 16870;
+  const int DRY_VALUE = 30084;
+  const int MIN = 0;
+  const int MAX = 100;
+  float sensorValueH = ads.readADC_SingleEnded(CHANNEL_H);
+
+  float humidityValue = map(sensorValueH, DRY_VALUE, WET_VALUE, MIN, MAX);
+
+  Serial.print("Humedad: ");
+  Serial.print(humidityValue);
+  Serial.println("%");
+}
+
+/--------------------TEMPERATURE--------------------/
+void getTemperature() {
+  float num = 4.096, num2 = 32767, b = 0.79, m = 0.035;
+  int sensorValueT = ads.readADC_SingleEnded(CHANNEL_T);
+  float Vout = ((float)sensorValueT * num)/num2;
+  float temperatureValue = ((Vout - b)/m) - 1.5;
+
+  Serial.print("Temperature: ");
+  Serial.print(temperatureValue);
+  Serial.println("ºC");
+}
+
+/--------------------SALINITY--------------------/
+ 
+/int getSalinity() {  //chequear calibracion
+  int16_t adc0;
+
+  digitalWrite(power_pin, HIGH);
+  delay(100);
+
+  adc0 = analogRead(A0);
+  digitalWrite(power_pin, LOW);
+  //int salinityValue = (adc0 - 793.48) / (6.1486);
+  delay(100);
+
+  Serial.print("Lec. digital = ");
+  Serial.println(adc0, DEC);
+}
+
+void showSalinity() {
+  int salinity = getSalinity();
+
+  Serial.print("Salinity: ");
+  Serial.print(salinity);
+  Serial.println("gr/l");
+}/
+
+
+/--------------------PH--------------------/
+void getPh() {
+  float num = 4.096, num2 = 32767;
+  const float OFFSET = 5.3;
+  int sensorValueP = ads.readADC_SingleEnded(CHANNEL_P);
+  float Vout = ((float)sensorValueP - num)/num2;
+  float phValue = 3.5 * Vout + OFFSET;
+  Serial.println(Vout);
+
+  Serial.print("pH: ");
+  Serial.println(phValue);
+}
+/--------------------BRIGHTNESS-------------------/
+void getBrightness() {
+  int sensorValueB = ads.readADC_SingleEnded(CHANNEL_B);
+  const int DARKNESS = 500;
+  const int SHADOW = 1000;
+  const int AMBIENT = 16500;
+  const int LANTERN = 30000;
+
+  Serial.print("Luz: ");
+  if(sensorValueB <= DARKNESS) {
+    Serial.println("Oscuridad");
+  }else if(sensorValueB > DARKNESS && sensorValueB <= AMBIENT) {
+    Serial.println("Sombra");
+  }else if(sensorValueB > SHADOW && sensorValueB <= LANTERN) {
+    Serial.println("Ambiente");
+  }else if(sensorValueB > AMBIENT){
+    Serial.println("Linterna");
+  }
+} 
+
+
+/--------------------------------------/
+void initializeSparkfun() {
+  pinMode(power_pin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void initializeADS() {
+  ads.begin();
+  ads.setGain(GAIN_ONE);
+}
+
+
+void setup() {
+  initializeSparkfun();
+  initializeADS();
+}
+
+
+void loop() {
+  getHumidity();
+  getTemperature();
+  //showSalinity();
+  getPh();
+  getBrightness();
+  Serial.println();
+
+  delay(1000);
+}
